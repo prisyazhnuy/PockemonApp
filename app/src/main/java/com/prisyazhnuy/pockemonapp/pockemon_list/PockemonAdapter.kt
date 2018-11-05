@@ -1,87 +1,101 @@
 package com.prisyazhnuy.pockemonapp.pockemon_list
 
-import android.content.Context
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.prisyazhnuy.pockemonapp.model.Pockemon
+import org.jetbrains.anko.*
 
-interface AdapterCallback {
-    fun onClick(position: Int)
-}
 
-class PockemonAdapter(context: Context, data: List<Pockemon> = listOf()) : RecyclerView.Adapter<PockemonAdapter.ViewHolder>() {
+class PockemonAdapter(private val resultList: MutableList<Pockemon>?) :
+        RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    protected val context: Context = context.applicationContext
-    protected val inflater: LayoutInflater = LayoutInflater.from(context)
-    protected val data: MutableList<Pockemon> = data.toMutableList()
-
-    override fun getItemCount(): Int = this.data.size
-
-    fun isEmpty() = this.data.isEmpty()
-
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    fun getItem(position: Int): Pockemon = this.data[position]
-
-    fun add(`object`: Pockemon): Boolean = this.data.add(`object`)
-
-    fun add(oldPosition: Int, newPosition: Int) = this.data.add(newPosition, remove(oldPosition))
-
-    operator fun set(position: Int, `object`: Pockemon): Pockemon = this.data.set(position, `object`)
-
-    fun remove(`object`: Pockemon): Boolean = this.data.remove(`object`)
-
-    fun remove(position: Int): Pockemon = this.data.removeAt(position)
-
-    fun updateListItems(newObjects: List<Pockemon>, callback: DiffUtil.Callback) {
-        DiffUtil.calculateDiff(callback).dispatchUpdatesTo(this)
-        data.clear()
-        data.addAll(newObjects)
+    interface Callback {
+        fun onPockemonClick(id: Long)
     }
 
-    val all: List<Pockemon> = this.data
+    private var callback: Callback? = null
 
-    open fun clear() {
-        this.data.clear()
+    fun setCallback(callback: Callback) {
+        this.callback = callback
     }
 
-    fun addAll(collection: Collection<Pockemon>): Boolean = this.data.addAll(collection)
+    fun addItems(resultList: MutableList<Pockemon>) {
 
-    val snapshot: List<Pockemon> = data.toMutableList()
+        val newResultList = ArrayList<Pockemon>()
+        this.resultList?.let { newResultList.addAll(it) }
+        newResultList.addAll(resultList)
 
-    fun getItemPosition(`object`: Pockemon) = this.data.indexOf(`object`)
+        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun areItemsTheSame(p0: Int, p1: Int) = this@PockemonAdapter.resultList?.get(p0) == resultList[p1]
 
-    fun insert(`object`: Pockemon, position: Int) {
-        this.data.add(position, `object`)
-    }
+            override fun getOldListSize() = this@PockemonAdapter.resultList?.size ?: 0
 
-    fun insertAll(`object`: Collection<Pockemon>, position: Int) {
-        this.data.addAll(position, `object`)
-    }
+            override fun getNewListSize() = resultList.size
 
-    class ViewHolder(itemView: View, private val callback: AdapterCallback?) :
-            RecyclerView.ViewHolder(itemView),
-            View.OnClickListener {
+            override fun areContentsTheSame(p0: Int, p1: Int) = this@PockemonAdapter.resultList?.get(p0) == resultList[p1]
 
-        companion object {
-            internal fun newInstance(inflater: LayoutInflater, parent: ViewGroup?, callback: AdapterCallback?) =
-                    ViewHolder(inflater.inflate(R.layout.item_event, parent, false), callback)
         }
+        )
+        this.resultList?.addAll(resultList)
+        diffResult.dispatchUpdatesTo(this)
+    }
 
-        private val rlEventContainer = itemView.find<RelativeLayout>(R.id.rlEventContainer)
+    fun clearItems() {
+        resultList?.clear()
+        notifyDataSetChanged()
+    }
 
-        override fun bind(item: Event) {
-            with(item) {
-
-            setClickListeners(rlEventContainer)
+    fun addItem(pockemon: Pockemon) {
+        resultList?.run {
+            add(pockemon)
+            notifyItemInserted(size - 1)
         }
+    }
 
-        override fun onClick(view: View?) {
-            when (view?.id) {
-                R.id.rlEventContainer -> callback?.onClick(adapterPosition)
-            }
+    fun removeItem() {
+        resultList?.run {
+            removeAt(size - 1)
+            notifyItemRemoved(size)
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PockemonViewHolder {
+        return PockemonViewHolder(PockemonUI().createView(AnkoContext.create(parent.context, parent)))
+    }
+
+    fun getItem(position: Int): Pockemon? {
+        return if (position != RecyclerView.NO_POSITION)
+            resultList?.get(position)
+        else
+            null
+    }
+
+    override fun getItemCount(): Int {
+        return resultList?.size ?: 0
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        (holder as? PockemonViewHolder)?.run{
+            tvTitle.text = resultList?.get(position)?.name
+            llContainer.setOnClickListener { callback?.onPockemonClick(resultList?.get(position)?.id?: 0) }
+        }
+    }
+
+    inner class PockemonViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+        var tvTitle: TextView
+        var ivIcon: ImageView
+        var llContainer: LinearLayout
+
+        init {
+            tvTitle = itemView.findViewById(PockemonUI.tvTitleId)
+            ivIcon = itemView.findViewById(PockemonUI.ivIconId)
+            llContainer = itemView.findViewById(PockemonUI.llContainer)
         }
 
     }

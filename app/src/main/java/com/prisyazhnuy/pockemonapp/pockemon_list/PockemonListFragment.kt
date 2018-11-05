@@ -12,7 +12,8 @@ import android.view.ViewGroup
 import com.prisyazhnuy.pockemonapp.R
 import kotlinx.android.synthetic.main.fragment_pockemon_list.*
 
-class PockemonListFragment : Fragment() {
+class PockemonListFragment : Fragment(),
+        PockemonAdapter.Callback {
 
     companion object {
         fun newInstance() = PockemonListFragment()
@@ -41,7 +42,7 @@ class PockemonListFragment : Fragment() {
 
     private fun initRecyclerView() {
         viewManager = LinearLayoutManager(requireContext())
-        viewAdapter = MyAdapter(myDataset)
+        viewAdapter = PockemonAdapter(mutableListOf()).apply { setCallback(this@PockemonListFragment) }
 
         rvPockemons.apply {
             // use this setting to improve performance if you know that changes
@@ -55,6 +56,10 @@ class PockemonListFragment : Fragment() {
             adapter = viewAdapter
 
         }
+    }
+
+    override fun onPockemonClick(id: Long) {
+
     }
 
 }
