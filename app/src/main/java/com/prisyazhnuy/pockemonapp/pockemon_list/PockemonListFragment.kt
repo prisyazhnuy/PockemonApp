@@ -1,11 +1,13 @@
 package com.prisyazhnuy.pockemonapp.pockemon_list
 
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.prisyazhnuy.pockemonapp.model.NamedApiResourceList
 
 import com.prisyazhnuy.pockemonapp.model.PockemonModel
 import org.jetbrains.anko.AnkoContext
@@ -23,18 +25,6 @@ class PockemonListFragment : Fragment(),
 
     private var viewAdapter = PockemonAdapter(mutableListOf()).apply {
         setCallback(this@PockemonListFragment)
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
-        addItem(PockemonModel(name = "Pikachu"))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -42,13 +32,18 @@ class PockemonListFragment : Fragment(),
         return PockemonListUI(viewAdapter).createView(AnkoContext.create(ctx, this))
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(PockemonListVM::class.java)
+        viewModel.apply {
+            loadInit()
+            pockemonsLD.observe(this@PockemonListFragment, Observer { it?.let { viewAdapter.addItems(it)} })
+            errorLD.observe(this@PockemonListFragment, Observer { toast(it?.message.toString()) })
+        }
     }
 
     override fun onPockemonClick(id: Long) {
-        toast("Pockemon clicked")
+        toast("Pockemon clicked id = $id")
     }
 
 }

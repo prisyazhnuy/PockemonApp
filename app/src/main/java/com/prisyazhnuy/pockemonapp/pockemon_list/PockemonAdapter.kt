@@ -24,7 +24,7 @@ class PockemonAdapter(private val resultList: MutableList<Pockemon>?) :
         this.callback = callback
     }
 
-    fun addItems(resultList: MutableList<Pockemon>) {
+    fun addItems(resultList: List<Pockemon>) {
 
         val newResultList = ArrayList<Pockemon>()
         this.resultList?.let { newResultList.addAll(it) }
@@ -80,9 +80,11 @@ class PockemonAdapter(private val resultList: MutableList<Pockemon>?) :
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        (holder as? PockemonViewHolder)?.run{
+        (holder as? PockemonViewHolder)?.run {
             tvTitle.text = resultList?.get(position)?.name
-            llContainer.setOnClickListener { callback?.onPockemonClick(resultList?.get(position)?.id?: 0) }
+            llContainer.setOnClickListener {
+                callback?.onPockemonClick(resultList?.get(position)?.id ?: 0)
+            }
         }
     }
 
