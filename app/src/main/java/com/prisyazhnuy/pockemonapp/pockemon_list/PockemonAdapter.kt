@@ -15,7 +15,7 @@ class PockemonAdapter(private val resultList: MutableList<Pockemon>?) :
         RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     interface Callback {
-        fun onPockemonClick(id: Long)
+        fun onPockemonClick(pockemon: Pockemon?)
     }
 
     private var callback: Callback? = null
@@ -83,7 +83,7 @@ class PockemonAdapter(private val resultList: MutableList<Pockemon>?) :
         (holder as? PockemonViewHolder)?.run {
             tvTitle.text = resultList?.get(position)?.name
             llContainer.setOnClickListener {
-                callback?.onPockemonClick(resultList?.get(position)?.id ?: 0)
+                callback?.onPockemonClick(resultList?.get(position))
             }
         }
     }
