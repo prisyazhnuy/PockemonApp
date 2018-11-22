@@ -1,6 +1,7 @@
 package com.prisyazhnuy.pockemonapp.provider
 
 import android.graphics.Bitmap
+import com.prisyazhnuy.pockemonapp.database.PockemonRepositoryImpl
 import com.prisyazhnuy.pockemonapp.model.Pockemon
 import com.prisyazhnuy.pockemonapp.model.PockemonItem
 import com.prisyazhnuy.pockemonapp.network.PockemonModuleImpl
@@ -15,8 +16,13 @@ interface PockemonProvider {
 class PockemonProviderImpl : PockemonProvider {
 
     private val pockemonModule by lazy { PockemonModuleImpl() }
+    private val pockemonRepository by lazy { PockemonRepositoryImpl() }
 
-    override fun getPockemons(): Flowable<List<Pockemon>> = pockemonModule.getPockemons()
+    override fun getPockemons(): Flowable<List<Pockemon>> =
+            pockemonModule.getPockemons()
+                    .flatMapSingle { pockemonRepository.savePockemonList(it) }
+                    .onErrorResumeNext(pockemonRepository.getPockemonList().toFlowable())
+
 
     override fun getPockemon(name: String) = pockemonModule.getPockemon(name)
 
