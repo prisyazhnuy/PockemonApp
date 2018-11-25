@@ -1,9 +1,15 @@
 package com.prisyazhnuy.pockemonapp.model
 
-data class PockemonItem(val height: Int,
-                        val name: String,
-                        val order: Int,
-                        val weight: Int,
-                        val sprites: Sprites)
+interface PockemonItem {
+    var height: Int
+    var name: String
+    var order: Int
+    var weight: Int
+    var image: String
+}
 
-data class Sprites(val front_default: String)
+class PockemonItemModel(override var name: String,
+                        override var height: Int,
+                        override var order: Int,
+                        override var weight: Int,
+                        override var image: String) : PockemonItem

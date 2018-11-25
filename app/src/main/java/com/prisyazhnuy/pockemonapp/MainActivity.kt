@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity(),
             id = CONTAINER_ID
             padding = dip(30)
         }
-        replaceFragment(PockemonListFragment.newInstance())
+        if (getCurrentFragment() == null) replaceFragment(PockemonListFragment.newInstance(), false)
     }
 
     override fun showPockemonDetails(name: String) {
@@ -38,4 +38,6 @@ class MainActivity : AppCompatActivity(),
             if (needToAddToBackStack) addToBackStack(name)
         }.commit()
     }
+
+    private fun getCurrentFragment() = supportFragmentManager.findFragmentById(CONTAINER_ID)
 }

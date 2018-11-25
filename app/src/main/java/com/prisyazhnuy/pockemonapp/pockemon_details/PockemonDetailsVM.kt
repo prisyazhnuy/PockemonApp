@@ -12,8 +12,10 @@ import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
 
 class PockemonDetailsVM : ViewModel() {
+    val refreshLD = MutableLiveData<Boolean>()
     val pockemonLD = MutableLiveData<PockemonItem>()
     val pockemonIcon = MutableLiveData<Bitmap>()
+    val errorLD = MutableLiveData<String>()
 
     private val pockemonProvider by lazy { PockemonProviderImpl() }
 
@@ -22,7 +24,9 @@ class PockemonDetailsVM : ViewModel() {
             pockemonProvider.getPockemon(it)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(Consumer<PockemonItem> { pockemonLD.value = it }, Consumer { Log.e("PockemonDetailsVM", "error", it) })
+                    .doOnSubscribe { refreshLD.value = true }
+                    .doOnEach { refreshLD.value = false }
+                    .subscribe(Consumer<PockemonItem> { pockemonLD.value = it }, Consumer { errorLD.value = it.message })
         }
     }
 
@@ -30,6 +34,6 @@ class PockemonDetailsVM : ViewModel() {
         ImageCache.get(path)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(Consumer<Bitmap> { pockemonIcon.value = it }, Consumer { Log.e("PockemonDetailsVM", "error", it) })
+                .subscribe(Consumer<Bitmap> { pockemonIcon.value = it }, Consumer { errorLD.value = it.message })
     }
 }

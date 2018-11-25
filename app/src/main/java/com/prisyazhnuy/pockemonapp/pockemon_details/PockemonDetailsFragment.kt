@@ -8,11 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import com.prisyazhnuy.pockemonapp.model.PockemonItem
 import org.jetbrains.anko.AnkoContext
 import org.jetbrains.anko.support.v4.ctx
 import org.jetbrains.anko.support.v4.find
+import org.jetbrains.anko.support.v4.toast
 
 class PockemonDetailsFragment : Fragment() {
 
@@ -36,18 +38,31 @@ class PockemonDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(PockemonDetailsVM::class.java)
         viewModel.apply {
-            loadPockemon(arguments?.getString(EXTRA_NAME))
+            if (pockemonLD.value == null) loadPockemon(arguments?.getString(EXTRA_NAME))
             pockemonLD.observe(this@PockemonDetailsFragment, Observer { showPockemon(it) })
             pockemonIcon.observe(this@PockemonDetailsFragment, Observer {
                 find<ImageView>(PockemonDetailsUI.ivIcon).setImageBitmap(it)
             })
+            refreshLD.observe(this@PockemonDetailsFragment, Observer { showProgress(it) })
+            errorLD.observe(this@PockemonDetailsFragment, Observer { showError(it) })
         }
+    }
+
+    private fun showError(error: String?) {
+        error?.let { toast(it).show() }
+    }
+
+    private fun showProgress(isShown: Boolean?) {
+        find<RelativeLayout>(PockemonDetailsUI.progressBarId).visibility = if (isShown == true) View.VISIBLE else View.GONE
     }
 
     private fun showPockemon(item: PockemonItem?) {
         item?.let {
             find<TextView>(PockemonDetailsUI.tvName).text = it.name
-            viewModel.loadImage(it.sprites.front_default)
+            viewModel.loadImage(it.image)
+            find<TextView>(PockemonDetailsUI.tvOrder).text = it.order.toString()
+            find<TextView>(PockemonDetailsUI.tvWeight).text = it.weight.toString()
+            find<TextView>(PockemonDetailsUI.tvHeight).text = it.height.toString()
         }
     }
 

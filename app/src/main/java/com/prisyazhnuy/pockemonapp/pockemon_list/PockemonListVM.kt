@@ -22,6 +22,7 @@ class PockemonListVM : ViewModel() {
         pockemonProvider.getPockemons()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnEach { refreshLiveData.value = false }
                 .subscribe(Consumer<List<Pockemon>> { pockemonsLD.value = it },
                         Consumer<Throwable> { errorLD.value = it })
     }

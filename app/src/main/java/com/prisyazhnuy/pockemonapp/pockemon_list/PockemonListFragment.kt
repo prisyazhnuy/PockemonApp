@@ -9,9 +9,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
+import android.widget.RelativeLayout
 import com.prisyazhnuy.pockemonapp.model.Pockemon
 import org.jetbrains.anko.AnkoContext
 import org.jetbrains.anko.support.v4.ctx
+import org.jetbrains.anko.support.v4.find
 import org.jetbrains.anko.support.v4.toast
 
 class PockemonListFragment : Fragment(),
@@ -48,10 +51,15 @@ class PockemonListFragment : Fragment(),
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(PockemonListVM::class.java)
         viewModel.apply {
-            if (viewAdapter.itemCount == 0) loadInit()
+            if (pockemonsLD.value.isNullOrEmpty()) loadInit()
             pockemonsLD.observe(this@PockemonListFragment, Observer { it?.let { viewAdapter.addItems(it) } })
             errorLD.observe(this@PockemonListFragment, Observer { toast(it?.message.toString()) })
+            refreshLiveData.observe(this@PockemonListFragment, Observer { showProgress(it) })
         }
+    }
+
+    private fun showProgress(isShown: Boolean?) {
+        find<RelativeLayout>(PockemonListUI.progressBarId).visibility = if (isShown == true) View.VISIBLE else View.GONE
     }
 
     override fun onPockemonClick(pockemon: Pockemon?) {

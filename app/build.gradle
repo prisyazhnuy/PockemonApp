@@ -56,4 +56,7 @@ dependencies {
 
     implementation "org.jetbrains.anko:anko-sqlite:$anko_version"
 
+    //stetho
+    implementation 'com.facebook.stetho:stetho:1.5.0'
+
 }

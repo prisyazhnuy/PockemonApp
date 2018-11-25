@@ -11,6 +11,9 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import android.graphics.BitmapFactory
+import com.prisyazhnuy.pockemonapp.model.PockemonItemModel
+import io.reactivex.Scheduler
+import io.reactivex.schedulers.Schedulers
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
@@ -37,17 +40,21 @@ class PockemonModuleImpl : PockemonModule {
                 } ?: result.component2()?.let { emitter.onError(it) }
             }
         }, BackpressureStrategy.BUFFER)
+                .observeOn(Schedulers.io())
     }
 
     override fun getPockemon(name: String): Flowable<PockemonItem> {
         return Flowable.create({ emitter: FlowableEmitter<PockemonItem> ->
-            "$API_ENDPOINT$POCKEMON_LIST$name".httpGet().responseJson() { request, response, result ->
+            "$API_ENDPOINT$POCKEMON_LIST$name".httpGet().responseJson { _, _, result ->
                 result.component1()?.let {
-                    emitter.onNext(Gson().fromJson(it.content, PockemonItem::class.java))
+                    emitter.onNext(Gson().fromJson(it.content, PockemonItemBean::class.java).run {
+                        PockemonItemModel(name, height, order, weight, sprites.front_default)
+                    })
                     emitter.onComplete()
                 } ?: result.component2()?.let { emitter.onError(it) }
             }
         }, BackpressureStrategy.BUFFER)
+                .observeOn(Schedulers.io())
     }
 
     override fun loadImage(path: String): Flowable<Bitmap> {

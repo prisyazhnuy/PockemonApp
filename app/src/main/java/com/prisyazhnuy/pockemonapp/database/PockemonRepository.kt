@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.prisyazhnuy.pockemonapp.PockApp
 import com.prisyazhnuy.pockemonapp.model.Pockemon
 import com.prisyazhnuy.pockemonapp.model.PockemonItem
+import com.prisyazhnuy.pockemonapp.model.PockemonItemModel
 import com.prisyazhnuy.pockemonapp.model.PockemonModel
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -48,12 +49,35 @@ class PockemonRepositoryImpl : PockemonRepository {
                         }
                     }
 
-    override fun savePockemonItem(item: PockemonItem): Single<PockemonItem> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun savePockemonItem(item: PockemonItem) =
+            Single.just(item)
+                    .map {
+                        PockApp.instance.database.use {
+                            val values = ContentValues()
+                            values.put(DatabaseOpenHelper.NAME, it.name)
+                            values.put(DatabaseOpenHelper.WEIGHT, it.weight)
+                            values.put(DatabaseOpenHelper.ORDER, it.order)
+                            values.put(DatabaseOpenHelper.HEIGHT, it.height)
+                            values.put(DatabaseOpenHelper.URL, it.image)
 
-    override fun getPockemonItem(name: String): Single<PockemonItem> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+                            insertWithOnConflict(
+                                    DatabaseOpenHelper.POCKEMONS,
+                                    null,
+                                    values,
+                                    SQLiteDatabase.CONFLICT_REPLACE
+                            )
+                        }
+                        it
+                    }
+
+    override fun getPockemonItem(name: String): Single<PockemonItem> =
+            Single.just(name)
+                    .map {
+                        PockApp.instance.database.use {
+                            select(DatabaseOpenHelper.POCKEMONS)
+                                    .whereSimple("(${DatabaseOpenHelper.NAME} like ?)", name)
+                                    .parseSingle(classParser<PockemonItemModel>())
+                        }
+                    }
 
 }

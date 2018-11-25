@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">PockemonApp</string>
+    <string name="name">Name:</string>
+    <string name="weight">Weight:</string>
+    <string name="order">Order:</string>
+    <string name="height">Height:</string>
 </resources>
